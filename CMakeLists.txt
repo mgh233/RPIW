@@ -17,7 +17,7 @@ set(GLEW_LINK /opt/homebrew/Cellar/glew/2.2.0_1/lib/libGLEW.2.2.dylib)
 set(GLFW_LINK /opt/homebrew/Cellar/glfw/3.3.8/lib/libglfw.3.dylib)
 link_libraries(${OPENGL} ${GLEW_LINK} ${GLFW_LINK})
 
-add_executable(recwarp main.cpp ./glad/src/glad.c)
+add_executable(recwarp main.cpp ./glad/src/glad.c stb/stb_image.h stb/stb_image.cpp Shader.h)
 
 if (APPLE)
     target_link_libraries(recwarp "-framework OpenGL")
