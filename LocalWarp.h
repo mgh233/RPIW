@@ -32,6 +32,7 @@ class LocalWarp {
 
 private:
     Mat img;        // 待处理的图片
+    Mat img_origin; // 原始图片
     Mat img_gray;   // 灰度图
     Mat energyMap;  // 能量图
     Mat displacement_vertical;   // 记录每个像素点的垂直移动
@@ -53,8 +54,8 @@ private:
         cvtColor(img_blur, img_gray, CV_BGR2GRAY);
 
         // 使用Scharr计算梯度
-        Scharr(img_gray, x_grad, CV_32F, 1, 0, 1, 0, BORDER_DEFAULT);
-        Scharr(img_gray, y_grad, CV_32F, 0, 1, 1, 0, BORDER_DEFAULT);
+        Scharr(img_gray, x_grad, -1, 1, 0, 1, 0, BORDER_DEFAULT);
+        Scharr(img_gray, y_grad, -1, 0, 1, 1, 0, BORDER_DEFAULT);
 
         // 转换为绝对值
         convertScaleAbs(x_grad, abs_x_grad);
@@ -95,7 +96,7 @@ private:
                     }
                 }
                 isCounting = false;
-                tmpStart = tmpEnd = i;
+                tmpStart = tmpEnd = i + 1;
                 tmpLength = 0;
             }
             // 无效区域
@@ -127,7 +128,7 @@ private:
                     }
                 }
                 isCounting = false;
-                tmpStart = tmpEnd = i;
+                tmpStart = tmpEnd = i + 1;
                 tmpLength = 0;
             }
                 // 无效区域
@@ -159,7 +160,7 @@ private:
                     }
                 }
                 isCounting = false;
-                tmpStart = tmpEnd = i;
+                tmpStart = tmpEnd = i + 1;
                 tmpLength = 0;
             }
                 // 无效区域
@@ -191,7 +192,7 @@ private:
                     }
                 }
                 isCounting = false;
-                tmpStart = tmpEnd = i;
+                tmpStart = tmpEnd = i + 1;
                 tmpLength = 0;
             }
                 // 无效区域
@@ -214,6 +215,7 @@ private:
 
         float minValue;
         int index;
+
         // 找到值最小的点
         switch (direction) {
             case LEFT:
@@ -420,6 +422,7 @@ private:
                 }
                 break;
         }
+
         return pixels;
     }
 
@@ -434,7 +437,9 @@ private:
             pair<int, int> longest_line = find_longest(direction);
             start = longest_line.first;
             end = longest_line.second;
+
             if (start == end) break;
+
             Mat sub_map, sub_mask;
             switch (direction) {
                 case LEFT:
@@ -467,6 +472,7 @@ private:
                     case DOWN:
                         row = pixel.first;
                         col = pixel.second + start;
+                        break;
                 }
                 tmpImg.at<Vec3b>(row, col) = {51, 204, 51};
                 switch (direction) {
@@ -474,29 +480,37 @@ private:
                         for (int j = 0; j < col; j ++) {
                             img.at<Vec3b>(row, j) = img.at<Vec3b>(row, j + 1);
                             mask.at<uchar>(row, j) = mask.at<uchar>(row, j + 1);
-                            displacement_horizontal.at<uchar>(row, j + 1) += -1;   // 表示向左一个单位
+                            displacement_horizontal.at<int>(row, j) += -1;   // 表示向左一个单位
                         }
+                        if (col != 0 && col != img.cols - 1)
+                            img.at<Vec3b>(row, col) = 0.5 * img.at<Vec3b>(row, col - 1) + 0.5 * img.at<Vec3b>(row, col + 1);
                         break;
                     case RIGHT:
                         for (int j = img.cols - 1; j > col; j --) {
                             img.at<Vec3b>(row, j) = img.at<Vec3b>(row, j - 1);
                             mask.at<uchar>(row, j) = mask.at<uchar>(row, j - 1);
-                            displacement_horizontal.at<uchar>(row, j - 1) += 1;   // 表示向右一个单位
+                            displacement_horizontal.at<int>(row, j) += 1;   // 表示向右一个单位
                         }
+                        if (col != 0 && col != img.cols - 1)
+                            img.at<Vec3b>(row, col) = 0.5 * img.at<Vec3b>(row, col - 1) + 0.5 * img.at<Vec3b>(row, col + 1);
                         break;
                     case UP:
                         for (int j = 0; j < row; j ++) {
                             img.at<Vec3b>(j, col) = img.at<Vec3b>(j + 1, col);
                             mask.at<uchar>(j, col) = mask.at<uchar>(j + 1, col);
-                            displacement_vertical.at<uchar>(j + 1, col) += -1;   // 表示向上一个单位
+                            displacement_vertical.at<int>(j, col) += -1;   // 表示向上一个单位
                         }
+                        if (row != 0 && row != img.rows - 1)
+                            img.at<Vec3b>(row, col) = 0.5 * img.at<Vec3b>(row - 1, col) + 0.5 * img.at<Vec3b>(row + 1, col);
                         break;
                     case DOWN:
                         for (int j = img.rows - 1; j > row; j --) {
                             img.at<Vec3b>(j, col) = img.at<Vec3b>(j - 1, col);
                             mask.at<uchar>(j, col) = mask.at<uchar>(j - 1, col);
-                            displacement_horizontal.at<uchar>(j - 1, col) += 1;   // 表示向下一个单位
+                            displacement_vertical.at<int>(j, col) += 1;   // 表示向下一个单位
                         }
+                        if (row != 0 && row != img.rows - 1)
+                            img.at<Vec3b>(row, col) = 0.5 * img.at<Vec3b>(row - 1, col) + 0.5 * img.at<Vec3b>(row + 1, col);
                         break;
                 }
             }
@@ -513,8 +527,9 @@ public:
         this->img = img;
         this->energyMap.create(img.rows, img.cols, CV_32F);
         this->mask = mask;
-        this->displacement_horizontal.create(img.rows, img.cols, CV_8UC1);
-        this->displacement_vertical.create(img.rows, img.cols, CV_8UC1);
+        this->displacement_horizontal = Mat::zeros(img.rows, img.cols, CV_32SC1);
+        this->displacement_vertical = Mat::zeros(img.rows, img.cols, CV_32SC1);
+        this->img_origin = img.clone();
 
         calcEnergyMap();
         seamCarve();
@@ -522,7 +537,55 @@ public:
 
     // 得到local warp之后的mesh
     vector<pair<int, int>> get_warp_mesh(int meshRow, int meshCol) {
+        // 计算每个quad里有多少行和列像素
+        float rowPerQuad = img.rows / meshRow;
+        float colPerQuad = img.cols / meshCol;
 
+        // 得到矩形上的网格
+        vector<pair<int, int>> vertexes((meshRow + 1) * (meshCol + 1), {0, 0});
+        for (int i = 0; i < meshRow + 1; i ++) {
+            for (int j = 0; j < meshCol + 1; j ++) {
+                // 顶点在边框上
+                if (i == meshRow) {
+                    vertexes[i * (meshCol + 1) + j] = make_pair(img.rows - 1, round(j * colPerQuad));
+                    continue;
+                }
+                else if (j == meshCol) {
+                    vertexes[i * (meshCol + 1) + j] = make_pair(round(i * rowPerQuad), img.cols - 1);
+                    continue;
+                }
+                vertexes[i * (meshCol + 1) + j] = make_pair(round(i * rowPerQuad), round(j * colPerQuad));
+            }
+        }
+
+        // 根据displacement local warp矩形
+        for (auto &vertex: vertexes) {
+            int row = vertex.first;
+            int col = vertex.second;
+            int d_vertical = displacement_vertical.at<int>(row, col);
+            int d_horizontal = displacement_horizontal.at<int>(row, col);
+            // 更新
+            vertex.first = row - d_vertical;
+            vertex.second = col - d_horizontal;
+        }
+
+        Scalar lineColor(0, 255, 0);
+        for (int i = 0; i < meshRow; i ++) {
+            for (int j = 0; j < meshCol; j ++) {
+                int index = i * (meshCol + 1) + j;
+                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
+                     Point(vertexes[index + 1].second, vertexes[index + 1].first),
+                     lineColor, 2);
+                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
+                     Point(vertexes[index + meshCol + 1].second, vertexes[index + meshCol + 1].first),
+                     lineColor, 2);
+            }
+        }
+
+        imshow("img", img_origin);
+        waitKey(0);
+
+        return vertexes;
     }
 };
 
