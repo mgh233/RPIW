@@ -38,7 +38,10 @@ private:
         dst = src | (~cutImg);
     }
 
+
+
 public:
+    // 生成mask
     Mat createMask(Mat img) {
         Mat mask;
         cvtColor(img, img, CV_BGR2GRAY);

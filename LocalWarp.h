@@ -11,6 +11,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -62,10 +63,13 @@ private:
         convertScaleAbs(y_grad, abs_y_grad);
 
         // 计算最终的能量图
-        addWeighted(abs_x_grad, 0.5, abs_y_grad, 0.5, 1, energyMap);
-        energyMap /= 255;
+        Mat energyMat;
+        addWeighted(abs_x_grad, 0.5, abs_y_grad, 0.5, 1, energyMat);
+        energyMat.convertTo(energyMap, CV_32FC1);
+//        energyMap /= 255;
 
-//        imshow("energyMap", energyMap);
+//        imshow("energyMap", energyMat);
+//        waitKey(0);
     }
 
 
@@ -525,7 +529,6 @@ private:
 public:
     explicit LocalWarp(Mat img, Mat mask) {
         this->img = img;
-        this->energyMap.create(img.rows, img.cols, CV_32F);
         this->mask = mask;
         this->displacement_horizontal = Mat::zeros(img.rows, img.cols, CV_32SC1);
         this->displacement_vertical = Mat::zeros(img.rows, img.cols, CV_32SC1);

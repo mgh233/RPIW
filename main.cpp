@@ -124,6 +124,6 @@ int main() {
     Tools tools;
     Mat mask = tools.createMask(img);
     LocalWarp localWarp(img, mask);
-    localWarp.get_warp_mesh(20, 20);
+    vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(20, 20);
     return 0;
 }

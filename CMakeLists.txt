@@ -32,7 +32,7 @@ add_executable(recwarp main.cpp
         LocalWarp.h
         tools.h
         lsd/lsd.h
-        lsd/lsd.cpp)
+        lsd/lsd.cpp GlobalWarp.h)
 
 target_link_libraries(recwarp ${OpenCV_LIBS})
 
