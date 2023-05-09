@@ -59,6 +59,7 @@ public:
         fillHole(temp, mask);
         mask = ~mask;   // 有效部分变为0
 
+
         // 腐蚀膨胀操作
         Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5, 5));
         Mat dilate_out;

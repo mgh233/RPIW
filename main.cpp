@@ -120,10 +120,12 @@ int main() {
 //
 //    glfwTerminate();
 
-    Mat img = imread("../pic/2_input.jpg");
     Tools tools;
+    Mat img = imread("../pic/5_input.jpg");
+
     Mat input_img;
     double scale = tools.shrinkImage(img, input_img);
+
     int meshRow = tools.get_mesh_size(input_img).first;
     int meshCol = tools.get_mesh_size(input_img).second;
     Mat mask = tools.createMask(input_img);
