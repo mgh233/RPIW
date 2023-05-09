@@ -48,28 +48,65 @@ private:
         Mat x_grad, y_grad, abs_x_grad, abs_y_grad; // 梯度
         Mat img_blur;
 
-        // 采用gaussian blur减少噪声的影响
-        GaussianBlur(img, img_blur, Size(3, 3), 0, 0, BORDER_DEFAULT);
+//         采用gaussian blur减少噪声的影响
+//        GaussianBlur(img, img_blur, Size(3, 3), 0, 0, BORDER_DEFAULT);
 
         // 转换为灰度图
-        cvtColor(img_blur, img_gray, CV_BGR2GRAY);
-
-        // 使用Scharr计算梯度
-        Scharr(img_gray, x_grad, -1, 1, 0, 1, 0, BORDER_DEFAULT);
-        Scharr(img_gray, y_grad, -1, 0, 1, 1, 0, BORDER_DEFAULT);
-
-        // 转换为绝对值
-        convertScaleAbs(x_grad, abs_x_grad);
-        convertScaleAbs(y_grad, abs_y_grad);
-
-        // 计算最终的能量图
-        Mat energyMat;
-        addWeighted(abs_x_grad, 0.5, abs_y_grad, 0.5, 1, energyMat);
-        energyMat.convertTo(energyMap, CV_32FC1);
+        cvtColor(img, img_gray, CV_BGR2GRAY);
+//
+//        // 使用Scharr计算梯度
+//        Scharr(img_gray, x_grad, -1, 1, 0, 1, 0, BORDER_DEFAULT);
+//        Scharr(img_gray, y_grad, -1, 0, 1, 1, 0, BORDER_DEFAULT);
+//
+//        // 转换为绝对值
+//        convertScaleAbs(x_grad, abs_x_grad);
+//        convertScaleAbs(y_grad, abs_y_grad);
+//
+//        // 计算最终的能量图
+//        Mat energyMat;
+//        addWeighted(abs_x_grad, 0.5, abs_y_grad, 0.5, 1, energyMat);
+//        energyMat.convertTo(energyMap, CV_32FC1);
 //        energyMap /= 255;
 
-//        imshow("energyMap", energyMat);
-//        waitKey(0);
+
+        Mat m = Mat::zeros(img.rows, img.cols, CV_32FC1);
+
+        // 计算forward energy
+        for (int i = 1; i < img.rows; i ++) {
+            for (int j = 0; j < img.cols; j ++) {
+                int up = (i - 1) % img.rows;
+                int left = (j - 1 + img.cols) % img.cols;
+                int right = (j + 1) % img.cols;
+
+                double mU = m.at<float>(up, j);
+                double mL = m.at<float>(up, left);
+                double mR = m.at<float>(up, right);
+
+                double cU = abs(img_gray.at<uchar>(i, right) - img_gray.at<uchar>(i, left));
+                double cL = abs(img_gray.at<uchar>(up, j) - img_gray.at<uchar>(i, left)) + cU;
+                double cR = abs(img_gray.at<uchar>(up, j) - img_gray.at<uchar>(i, right)) + cU;
+
+                // 计算最小的值
+                double minValue = min(min(cU + mU, cL + mL), cR + mR);
+                if (minValue == cU + mU) {
+                    m.at<float>(i, j) = cU + mU;
+                    energyMap.at<float>(i, j) = cU;
+                }
+                else if (minValue == cL + mL) {
+                    m.at<float>(i, j) = cL + mL;
+                    energyMap.at<float>(i, j) = cL;
+                }
+                else {
+                    m.at<float>(i, j) = cR + mR;
+                    energyMap.at<float>(i, j) = cR;
+                }
+            }
+        }
+        energyMap /= 255;
+
+//        imshow("energyMap", energyMap);
+//        waitKey(10);
+
     }
 
 
@@ -249,13 +286,13 @@ private:
                                                                                map.at<float>(i - 1, j));
                         }
                         else {
-                            float diff_l = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i - 1, j))
-                                    + abs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1));
-                            float diff_u = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1));
-                            float diff_r = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1))
-                                    + fabs(img_gray.at<uchar>(i, j + 1) - img_gray.at<uchar>(i - 1, j));
-                            float tmp = min(map.at<float>(i - 1, j - 1) + diff_l, map.at<float>(i - 1, j) + diff_u);
-                            map.at<float>(i, j) = srcMap.at<float>(i, j) + min(tmp, map.at<float>(i - 1, j + 1) + diff_r);
+//                            float diff_l = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i - 1, j))
+//                                    + abs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1));
+//                            float diff_u = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1));
+//                            float diff_r = fabs(img_gray.at<uchar>(i, j - 1) - img_gray.at<uchar>(i, j + 1))
+//                                    + fabs(img_gray.at<uchar>(i, j + 1) - img_gray.at<uchar>(i - 1, j));
+                            float tmp = min(map.at<float>(i - 1, j - 1), map.at<float>(i - 1, j));
+                            map.at<float>(i, j) = srcMap.at<float>(i, j) + min(tmp, map.at<float>(i - 1, j + 1));
                         }
                     }
                 }
@@ -533,6 +570,7 @@ public:
         this->displacement_horizontal = Mat::zeros(img.rows, img.cols, CV_32SC1);
         this->displacement_vertical = Mat::zeros(img.rows, img.cols, CV_32SC1);
         this->img_origin = img.clone();
+        this->energyMap = Mat::zeros(img.rows, img.cols, CV_32FC1);
 
         calcEnergyMap();
         seamCarve();

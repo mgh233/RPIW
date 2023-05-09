@@ -71,6 +71,24 @@ public:
         return eroded_out;
     }
 
+
+    // 缩小图片到1M个pixels，返回scale
+    double shrinkImage(Mat src, Mat &dst) {
+        int pixel_numbers = src.rows * src.cols;
+        double scale = sqrt(pixel_numbers / 1000000.0);
+        resize(src, dst, Size(), 1 / scale, 1 / scale);
+        return scale;
+    }
+
+
+    // 通过长宽比得到合适的mesh行和列数
+    pair<int, int> get_mesh_size(Mat img) {
+        double scale = (double) img.rows / img.cols;
+        int col = sqrt(400 / scale);
+        int row = scale * col;
+        return {row, col};
+    }
+
 };
 
 #endif //RECWARP_TOOLS_H

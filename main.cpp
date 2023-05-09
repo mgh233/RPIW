@@ -122,8 +122,12 @@ int main() {
 
     Mat img = imread("../pic/2_input.jpg");
     Tools tools;
-    Mat mask = tools.createMask(img);
-    LocalWarp localWarp(img, mask);
-    vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(20, 20);
+    Mat input_img;
+    double scale = tools.shrinkImage(img, input_img);
+    int meshRow = tools.get_mesh_size(input_img).first;
+    int meshCol = tools.get_mesh_size(input_img).second;
+    Mat mask = tools.createMask(input_img);
+    LocalWarp localWarp(input_img, mask);
+    vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(meshRow, meshCol);
     return 0;
 }
