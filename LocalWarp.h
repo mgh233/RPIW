@@ -498,46 +498,43 @@ private:
                     case LEFT:
                         for (int j = 0; j < col; j ++) {
                             img.at<Vec3b>(row, j) = img.at<Vec3b>(row, j + 1);
-                            tmpImg.at<Vec3b>(row, j) = tmpImg.at<Vec3b>(row, j + 1);
+//                            tmpImg.at<Vec3b>(row, j) = tmpImg.at<Vec3b>(row, j + 1);
                             mask.at<uchar>(row, j) = mask.at<uchar>(row, j + 1);
-                            energyMap.at<float>(row, j) = energyMap.at<float>(row, j + 1);
                             displacement_horizontal.at<int>(row, j) += -1;   // 表示向左一个单位
                         }
                         break;
                     case RIGHT:
                         for (int j = img.cols - 1; j > col; j --) {
                             img.at<Vec3b>(row, j) = img.at<Vec3b>(row, j - 1);
-                            tmpImg.at<Vec3b>(row, j) = tmpImg.at<Vec3b>(row, j - 1);
+//                            tmpImg.at<Vec3b>(row, j) = tmpImg.at<Vec3b>(row, j - 1);
                             mask.at<uchar>(row, j) = mask.at<uchar>(row, j - 1);
-                            energyMap.at<float>(row, j) = energyMap.at<float>(row, j - 1);
                             displacement_horizontal.at<int>(row, j) += 1;   // 表示向右一个单位
                         }
                         break;
                     case UP:
                         for (int j = 0; j < row; j ++) {
                             img.at<Vec3b>(j, col) = img.at<Vec3b>(j + 1, col);
-                            tmpImg.at<Vec3b>(j, col) = tmpImg.at<Vec3b>(j + 1, col);
+//                            tmpImg.at<Vec3b>(j, col) = tmpImg.at<Vec3b>(j + 1, col);
                             mask.at<uchar>(j, col) = mask.at<uchar>(j + 1, col);
-                            energyMap.at<float>(j, col) = energyMap.at<float>(j + 1, col);
                             displacement_vertical.at<int>(j, col) += -1;   // 表示向上一个单位
                         }
                         break;
                     case DOWN:
                         for (int j = img.rows - 1; j > row; j --) {
                             img.at<Vec3b>(j, col) = img.at<Vec3b>(j - 1, col);
-                            tmpImg.at<Vec3b>(j, col) = tmpImg.at<Vec3b>(j - 1, col);
+//                            tmpImg.at<Vec3b>(j, col) = tmpImg.at<Vec3b>(j - 1, col);
                             mask.at<uchar>(j, col) = mask.at<uchar>(j - 1, col);
-                            energyMap.at<float>(j, col) = energyMap.at<float>(j - 1, col);
                             displacement_vertical.at<int>(j, col) += 1;   // 表示向下一个单位
                         }
                         break;
                 }
+                // 使用相反色替代原图seam部分
                 Vec3b p = img.at<Vec3b>(row, col);
                 img.at<Vec3b>(row, col) = {(unsigned char)(255 - p[0]), (unsigned char)(255 - p[1]), (unsigned char)(255 - p[2])};
             }
             calcEnergyMap();
-            imshow("img", img);
-            waitKey(10);
+//            imshow("img", tmpImg);
+//            waitKey(10);
         }
     }
 
@@ -545,8 +542,8 @@ private:
 
 public:
     explicit LocalWarp(Mat img, Mat mask) {
-        this->img = img;
-        this->mask = mask;
+        this->img = img.clone();
+        this->mask = mask.clone();
         this->displacement_horizontal = Mat::zeros(img.rows, img.cols, CV_32SC1);
         this->displacement_vertical = Mat::zeros(img.rows, img.cols, CV_32SC1);
         this->img_origin = img.clone();
@@ -591,21 +588,21 @@ public:
             vertex.second = col - d_horizontal;
         }
 
-        Scalar lineColor(0, 255, 0);
-        for (int i = 0; i < meshRow; i ++) {
-            for (int j = 0; j < meshCol; j ++) {
-                int index = i * (meshCol + 1) + j;
-                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
-                     Point(vertexes[index + 1].second, vertexes[index + 1].first),
-                     lineColor, 2);
-                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
-                     Point(vertexes[index + meshCol + 1].second, vertexes[index + meshCol + 1].first),
-                     lineColor, 2);
-            }
-        }
+//        Scalar lineColor(0, 255, 0);
+//        for (int i = 0; i < meshRow; i ++) {
+//            for (int j = 0; j < meshCol; j ++) {
+//                int index = i * (meshCol + 1) + j;
+//                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
+//                     Point(vertexes[index + 1].second, vertexes[index + 1].first),
+//                     lineColor, 2);
+//                line(img_origin, Point(vertexes[index].second, vertexes[index].first),
+//                     Point(vertexes[index + meshCol + 1].second, vertexes[index + meshCol + 1].first),
+//                     lineColor, 2);
+//            }
+//        }
 
-        imshow("img", img_origin);
-        waitKey(0);
+//        imshow("img", img_origin);
+//        waitKey(0);
 
         return vertexes;
     }

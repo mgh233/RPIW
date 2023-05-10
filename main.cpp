@@ -8,6 +8,7 @@
 #include "myShader.h"
 #include "tools.h"
 #include "LocalWarp.h"
+#include "GlobalWarp.h"
 
 using namespace std;
 
@@ -121,7 +122,7 @@ int main() {
 //    glfwTerminate();
 
     Tools tools;
-    Mat img = imread("../pic/5_input.jpg");
+    Mat img = imread("../pic/2_input.jpg");
 
     Mat input_img;
     double scale = tools.shrinkImage(img, input_img);
@@ -131,5 +132,6 @@ int main() {
     Mat mask = tools.createMask(input_img);
     LocalWarp localWarp(input_img, mask);
     vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(meshRow, meshCol);
+    GlobalWarp globalWarp(vertexes, input_img, meshRow, meshCol);
     return 0;
 }
