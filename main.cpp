@@ -1,4 +1,6 @@
 #include <iostream>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <opencv2/opencv.hpp>
@@ -130,8 +132,10 @@ int main() {
     int meshRow = tools.get_mesh_size(input_img).first;
     int meshCol = tools.get_mesh_size(input_img).second;
     Mat mask = tools.createMask(input_img);
+    cout << "start local warp" << "\t";
     LocalWarp localWarp(input_img, mask);
     vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(meshRow, meshCol);
-    GlobalWarp globalWarp(vertexes, input_img, meshRow, meshCol);
+    cout << "finish" << endl;
+    GlobalWarp globalWarp(vertexes, input_img, meshRow, meshCol, 100, 1e8);
     return 0;
 }

@@ -16,6 +16,9 @@ include_directories(${LOCAL_H})
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+# Eigen
+include_directories(/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
+
 set(GLEW_H /opt/homebrew/Cellar/glew/2.2.0_1/include/GL)
 set(GLFW_H /opt/homebrew/Cellar/glfw/3.3.8/include/GLFW)
 link_directories(${GLEW_H} ${GLFW_H})
