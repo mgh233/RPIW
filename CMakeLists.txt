@@ -31,7 +31,6 @@ add_executable(recwarp main.cpp
         ./glad/src/glad.c
         stb/stb_image.h
         stb/stb_image.cpp
-        myShader.h
         LocalWarp.h
         tools.h
         lsd/lsd.h
