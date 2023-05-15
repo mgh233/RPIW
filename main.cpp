@@ -132,10 +132,20 @@ int main() {
     int meshRow = tools.get_mesh_size(input_img).first;
     int meshCol = tools.get_mesh_size(input_img).second;
     Mat mask = tools.createMask(input_img);
+
+    // local warp
     cout << "start local warp" << "\t";
     LocalWarp localWarp(input_img, mask);
     vector<pair<int, int>> vertexes =  localWarp.get_warp_mesh(meshRow, meshCol);
     cout << "finish" << endl;
+
+    // global warp
     GlobalWarp globalWarp(vertexes, input_img, meshRow, meshCol, 100, 1e8);
+    auto final_vertexes = globalWarp.get_vertexes();
+
+    // 放大mesh到原图
+
+
+
     return 0;
 }

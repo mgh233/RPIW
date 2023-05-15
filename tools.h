@@ -87,7 +87,7 @@ public:
         double scale = (double) img.rows / img.cols;
         int col = sqrt(400 / scale);
         int row = scale * col;
-        return {row, col};
+        return {row - 1, col - 1};
     }
 
 };
