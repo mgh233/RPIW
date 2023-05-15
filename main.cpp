@@ -8,6 +8,7 @@
 //#include <GLFW/glfw3.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/matx.hpp>
+#include <sys/time.h>
 
 
 #include "stb/stb_image.h"
@@ -147,8 +148,17 @@ void display() {
     glutSwapBuffers();
 }
 
+long getCurrentTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
 
 int main(int argc, char* argv[]) {
+
+    long time1 = getCurrentTime();
 
     Tools tools;
     Mat img = imread("../pic/2_input.jpg");
@@ -167,8 +177,10 @@ int main(int argc, char* argv[]) {
     cout << "finish" << endl;
 
     // global warp
+    cout << "start global warp" << "\t";
     GlobalWarp globalWarp(vertexes, input_img, meshRow, meshCol, 100, 1e8);
     auto final_vertexes = globalWarp.get_vertexes();
+    cout << "finish" << endl;
 
     //放大mesh到原图
     for (auto &vertex: final_vertexes) {
@@ -183,6 +195,9 @@ int main(int argc, char* argv[]) {
         vertex.first = lround(x * scale);
         vertex.second = lround(y * scale);
     }
+
+    long time2 = getCurrentTime();
+    cout << "耗时：" << time2 - time1 << "ms" << endl;
 
     mesh = vertexes;
     final_mesh = final_vertexes;

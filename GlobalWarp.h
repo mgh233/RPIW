@@ -602,7 +602,6 @@ private:
         // shape energy
         SparseMatrix<double> shape_energy = get_shape_energy();
         for (int i = 0; i < 10; i ++) {
-            cout << "iteration: " << i << "\t";
             int line_num = 0;
             SparseMatrix<double> line_energy = get_line_energy(line_num);
             SparseVector<double> b(shape_energy.rows() + line_energy.rows() + 2 * vertexes.size(), 1);
@@ -637,7 +636,6 @@ private:
 
             // 更新theta
             update_rotation();
-            cout << "finish" << endl;
         }
     }
 
